@@ -16,14 +16,14 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    // Parsing berdasarkan referensi data Google Shopping API
+    // Parsing presisi berdasarkan referensi JSON SerpApi terbaru
     return Product(
       title: json['title'] ?? '',
-      // Konversi secara aman ke double
-      price: _parseDouble(json['price']),
-      storeName: json['source'] ?? json['store_name'] ?? '',
+      // Menggunakan extracted_price (int/float) untuk akurasi perhitungan
+      price: _parseDouble(json['extracted_price'] ?? json['price']),
+      storeName: json['source'] ?? '',
       thumbnail: json['thumbnail'] ?? '',
-      productUrl: json['link'] ?? json['product_url'] ?? '',
+      productUrl: json['product_link'] ?? json['link'] ?? '',
       rating: _parseDouble(json['rating']),
     );
   }
@@ -41,9 +41,16 @@ class Product {
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      // Hilangkan semua karakter kecuali angka dan titik (misal: "Rp 120.000" -> "120000")
+      // Namun hati-hati dengan pemisah ribuan vs desimal.
+      // SerpApi extracted_price biasanya sudah angka bersih.
+      // Jika memparse dari string 'price' (misal "$1,200.50"), kita perlu membersihkan koma dulu.
+      final cleanValue =
+          value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+      return double.tryParse(cleanValue) ?? 0.0;
+    }
     return 0.0;
   }
 }

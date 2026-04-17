@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../features/product/data/models/product_model.dart';
@@ -8,33 +9,55 @@ class ApiService {
   Future<List<Product>> fetchProducts(String query) async {
     // Pastikan API Key di-load dari file .env
     final apiKey = dotenv.env['SERPAPI_KEY'];
-    if (apiKey == null) {
-      throw Exception('API Key tidak ditemukan di dalam konfigurasi .env');
+    if (apiKey == null || apiKey == '[YOUR_KEY]' || apiKey.isEmpty) {
+      throw 'API Key SerpApi belum dikonfigurasi. Silakan atur SERPAPI_KEY di file .env Anda.';
     }
 
     final url = Uri.parse(
         'https://serpapi.com/search.json?engine=google_shopping&q=$query&api_key=$apiKey&gl=id&hl=id');
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
 
-        // Google Shopping via SerpApi biasanya mereturn list barang di properti 'shopping_results'
-        if (data['shopping_results'] != null) {
-          final List<dynamic> results = data['shopping_results'];
+        final List<Product> products = [];
 
-          return results.map((item) => Product.fromJson(item)).toList();
-        } else {
-          return []; // Mengembalikan list kosong jika response tidak memiliki 'shopping_results'
+        // Gabungkan 'inline_shopping_results' (biasanya iklan/featured)
+        // dan 'shopping_results' (hasil pencarian utama)
+        if (data['inline_shopping_results'] != null) {
+          final List<dynamic> inlineResults = data['inline_shopping_results'];
+          products.addAll(inlineResults.map((item) => Product.fromJson(item)));
         }
+
+        if (data['shopping_results'] != null) {
+          final List<dynamic> shoppingResults = data['shopping_results'];
+          products
+              .addAll(shoppingResults.map((item) => Product.fromJson(item)));
+        }
+
+        if (products.isEmpty) {
+          throw 'Produk tidak ditemukan. Coba gunakan kata kunci pencarian lain.';
+        }
+
+        return products;
+      } else if (response.statusCode == 401) {
+        throw 'API Key tidak valid atau tidak diizinkan. Periksa kembali SERPAPI_KEY Anda.';
+      } else if (response.statusCode == 403) {
+        throw 'Akses dibatasi. Mungkin kuota API Anda telah habis.';
+      } else if (response.statusCode == 429) {
+        throw 'Terlalu banyak permintaan. Silakan coba lagi beberapa saat lagi.';
       } else {
-        throw Exception(
-            'Gagal memuat produk. Status Code: ${response.statusCode}');
+        throw 'Gagal mengambil data (Status: ${response.statusCode}). Silakan coba lagi.';
       }
+    } on SocketException {
+      throw 'Tidak ada koneksi internet. Periksa koneksi Wi-Fi atau data seluler Anda.';
+    } on http.ClientException {
+      throw 'Gagal terhubung ke server. Silakan coba lagi.';
     } catch (e) {
-      throw Exception('Terjadi kesalahan saat memanggil API: $e');
+      if (e is String) rethrow;
+      throw 'Terjadi kesalahan tidak terduga: $e';
     }
   }
 }
