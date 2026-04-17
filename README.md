@@ -1,110 +1,92 @@
-# Smart Price Tracker
+# 🛍️ Smart Price Tracker: Smart Shopping Assistant
 
-Smart Price Tracker adalah aplikasi mobile berbasis Flutter yang membantu pengguna untuk melacak harga barang dari berbagai sumber (Google Shopping API via SerpApi) dan menemukan penawaran terbaik menggunakan **analisis harga berbasis AI**.
+**Smart Price Tracker** adalah platform asisten belanja cerdas berbasis Flutter yang dirancang untuk membantu konsumen Indonesia mendapatkan harga terbaik secara objektif. Dengan mengintegrasikan data real-time dari berbagai marketplace besar melalui Google Shopping API (SerpApi), aplikasi ini mengeliminasi kebingungan saat membandingkan harga secara manual.
 
-## ✨ Fitur Utama
+---
+
+## 🎯 Maksud & Tujuan Aplikasi
+
+Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu produk yang sama bisa sangat signifikan. **Tujuan utama** aplikasi ini adalah:
+1.  **Transparency**: Memberikan transparansi harga pasar yang sebenarnya dari berbagai toko besar.
+2.  **Effortless Comparison**: Menghemat waktu pengguna dengan mengumpulkan data dari Shopee, Tokopedia, Lazada, Blibli, dan TikTok Shop dalam satu layar.
+3.  **Data-Driven Decision**: Membantu pengguna memutuskan apakah sekarang adalah waktu yang tepat untuk membeli atau sebaiknya menunggu, menggunakan analisis statistik dan prediksi AI.
+4.  **Avoiding Scams**: Memfilter produk dengan harga yang tidak masuk akal (produk dummy atau jasa) untuk memastikan data yang dianalisis adalah produk fisik asli.
+
+---
+
+## ✨ Fitur Unggulan
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| 🔍 **Pencarian Produk** | Cari produk dari Google Shopping API secara real-time |
-| 🤖 **Analisis AI** | Otomatis memberi label *Best Deal*, *Overpriced*, atau *Normal* berdasarkan analisis statistik harga |
-| 🎨 **UI Premium** | Design system "The Financial Atelier" — minimalis, editorial, dan modern |
-| 🌐 **Buka di Browser** | Tap produk untuk langsung membuka halaman toko di browser |
-| 📊 **Prediksi Harga** | Simulasi prediksi harga minggu depan (Predictive Analytics) |
+| 🤖 **AI Price Labeling** | Memberikan label otomatis: **Best Deal**, **Normal**, atau **Overpriced** berdasarkan posisi harga relatif terhadap rata-rata pasar. |
+| 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan 5 toko teratas. Setiap batang dapat di-klik untuk langsung menuju toko tersebut. |
+| 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** membantu pengguna merencanakan pengeluaran di masa mendatang. |
+| 🇮🇩 **Local Marketplace Focus** | Filter cerdas yang memprioritaskan e-commerce populer di Indonesia: *Lazada, Shopee, Tokopedia, TikTok Shop, dan Blibli*. |
+| 🛡️ **Smart Price Filtering** | Otomatis mengabaikan produk dengan harga di bawah Rp 1.000 untuk menjaga akurasi statistik rata-rata pasar. |
+| 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan editorial yang mengutamakan keterbacaan data. |
 
-## 🧠 Cara Kerja AI (Price Analysis)
+---
 
-Fitur utama aplikasi ini adalah **analisis harga otomatis** yang memberikan label kecerdasan buatan pada setiap produk:
+## 🧠 Cara Kerja Sistem (The Intelligence Engine)
 
-### Algoritma
+Aplikasi ini menggunakan `PriceAnalyzer` sebagai pusat logika bisnis untuk memproses data mentah menjadi wawasan yang berguna.
 
-```
-1. Ambil data produk dari Google Shopping API
-2. Filter produk yang memiliki harga valid (> 0)
-3. Hitung rata-rata (mean) dari seluruh harga valid
-   → μ = Σ(price_i) / n
-4. Bandingkan setiap harga produk terhadap rata-rata:
-```
+### 1. Analisis Statistik (Market Benchmarking)
+Sistem menghitung nilai rata-rata (*Mean*) dari hasil pencarian yang valid.
+-   **Best Deal**: Harga ≤ 90% dari rata-rata (Artinya hemat minimal 10% dibanding pasar).
+-   **Overpriced**: Harga > rata-rata pasar.
+-   **Normal**: Harga wajar di kisaran pasar.
 
-| Kondisi | Label | Penjelasan |
-|---------|-------|------------|
-| `price ≤ avg × 0.9` | 🔥 **Best Deal** | Harga ≥10% lebih murah dari rata-rata |
-| `price > avg` | 📈 **Overpriced** | Harga di atas rata-rata pasar |
-| `avg×0.9 < price ≤ avg` | ✅ **Normal** | Harga wajar, sekitar rata-rata |
+### 2. Prediksi Harga (Month-Ahead Prediction)
+Menggunakan algoritma *random walk* terkontrol (±5% volatilitas) untuk mensimulasikan pergerakan harga di bulan berikutnya. Ini memberikan gambaran psikologis bagi pengguna untuk mempertimbangkan urgensi pembelian.
 
-### Contoh Skenario
+### 3. Filter Marketplace Indonesia
+Sistem melakukan *String Similarity Matching* pada nama toko untuk memastikan grafik perbandingan hanya menampilkan platform terpercaya di Indonesia, menghindari data dari toko personal yang tidak relevan di luar negeri.
 
-Misal ada 5 produk dengan harga: `Rp 800k, 900k, 1jt, 1.1jt, 1.5jt`
-- Rata-rata = **Rp 1.060.000**
-- Threshold Best Deal = `1.060.000 × 0.9` = **Rp 954.000**
-- Produk `Rp 800k` dan `Rp 900k` → **Best Deal** ✅
-- Produk `Rp 1.1jt` dan `Rp 1.5jt` → **Overpriced** ⚠️
-- Produk `Rp 1jt` → **Normal**
+---
 
-## 🏗 Folder Structure (Clean Architecture)
+## 🏗 Struktur Arsitektur (Clean Architecture)
 
-Aplikasi ini mendesain struktur menggunakan pendekatan **Clean Architecture** berbasis fitur (feature-driven) agar *codebase* tetap rapi, scalable, terpisah komponennya dengan baik, dan mudah untuk di-test.
+Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) secara ketat:
 
-```
-lib/
- ┣ core/                # Konfigurasi aplikasi, helper, koneksi API
- ┃ ┗ network/
- ┃   ┗ api_service.dart # Service untuk memanggil Google Shopping API via SerpApi
- ┣ features/            # Daftar module/fitur pada aplikasi
- ┃ ┗ product/           # Fitur Product (pencarian dan pelacakan harga)
- ┃   ┣ data/
- ┃   ┃ ┗ models/
- ┃   ┃   ┗ product_model.dart   # Model data Product + fromJson parser
- ┃   ┣ domain/
- ┃   ┃ ┗ usecases/
- ┃   ┃   ┗ price_analyzer.dart  # ⭐ Engine AI analisis harga (Best Deal/Overpriced)
- ┃   ┗ presentation/
- ┃     ┗ pages/
- ┃       ┗ home_screen.dart     # UI utama: search, product cards, AI badges
- ┗ main.dart            # Entry point aplikasi
-```
+-   **Data Layer**: Mengelola komunikasi API (`ApiService`) dan pemetaan JSON ke obyek Dart (`ProductModel`).
+-   **Domain Layer**: Berisi logika bisnis inti (`PriceAnalyzer`) yang independen dari framework UI.
+-   **Presentation Layer**: Kumpulan widget UI yang responsif dan komponen visual (`HomeScreen`, `PriceComparisonChart`).
 
-## 🛠 Teknologi & Dependencies
+---
 
-| Teknologi | Kegunaan |
-|-----------|----------|
-| **Flutter** | Framework UI cross-platform |
-| **Dart** | Bahasa pemrograman |
-| **Clean Architecture** | Pattern arsitektur |
-| **google_fonts** | Typography Inter via Google Fonts |
-| **http** | HTTP client untuk API calls |
-| **url_launcher** | Membuka URL produk di browser |
-| **flutter_dotenv** | Manajemen API key yang aman |
+## 🛠 Teknologi Utama
 
-## 🎨 Design System — "The Financial Atelier"
+-   **Flutter & Dart**: Performa native untuk Android & iOS.
+-   **SerpApi (Google Shopping API)**: Data marketplace real-time yang akurat.
+-   **FL Chart / Custom Bar Painting**: Visualisasi data yang dinamis.
+-   **The Financial Atelier (Stitch)**: Sistem desain yang memberikan kesan mewah dan profesional.
 
-Desain UI menggunakan sistem dari Stitch MCP dengan pendekatan **editorial minimalis**:
+---
 
-- **Primary Color**: Deep Teal `#27676E`
-- **Background**: Off-white `#F8FAFA`
-- **Font**: Inter (via GoogleFonts)
-- **Prinsip**: No-Line Rule (tanpa border, gunakan background shifts)
-- **Shadow**: Ambient shadow 4% opacity ("felt, not seen")
-- **Badge**: Pill-shaped containers dengan warna semantik
+## 🚀 Cara Instalasi
 
-## 🚀 Cara Menjalankan
+1.  **Clone & Install**:
+    ```bash
+    git clone https://github.com/Montsyy/price-tracker-id.git
+    cd price-tracker
+    flutter pub get
+    ```
+2.  **Konfigurasi API Key**:
+    Buat file `.env` di root folder dan masukkan API Key dari [SerpApi](https://serpapi.com/):
+    ```env
+    SERPAPI_KEY=masukkan_api_key_anda_di_sini
+    ```
+3.  **Run**:
+    ```bash
+    flutter run
+    ```
 
-```bash
-# 1. Clone repository
-git clone <repository-url>
+---
 
-# 2. Masuk ke direktori project
-cd price-tracker
+## 📄 Lisensi & Kontribusi
 
-# 3. Buat file .env di root project
-echo "SERPAPI_KEY=your_api_key_here" > .env
+Proyek ini dikembangkan sebagai solusi belanja cerdas bagi masyarakat Indonesia. Kontribusi sangat terbuka untuk improvisasi algoritma AI atau integrasi marketplace lokal lainnya secara langsung.
 
-# 4. Install dependencies
-flutter pub get
-
-# 5. Jalankan aplikasi
-flutter run
-```
-
-## 📄 Pembaruan Berkala
-README ini didesain sebagai _living document_ dan akan diperbarui secara berkala seiring dengan penambahan fitur, dependensi baru, dan integrasi API lainnya ke dalam project.
+---
+*Developed with ❤️ by Dhafi Putra Alfarezi.*
