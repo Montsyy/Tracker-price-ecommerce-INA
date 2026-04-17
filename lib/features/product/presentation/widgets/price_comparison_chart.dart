@@ -15,9 +15,13 @@ class PriceComparisonChart extends StatelessWidget {
   /// Daftar produk hasil fetch dari API.
   final List<Product> products;
 
+  /// Callback ketika bar ditekan
+  final void Function(String url)? onProductTap;
+
   const PriceComparisonChart({
     super.key,
     required this.products,
+    this.onProductTap,
   });
 
   @override
@@ -113,7 +117,17 @@ class PriceComparisonChart extends StatelessWidget {
                   barColor = const Color(0xFF9F403D); // Termahal (Merah)
                 }
 
-                return _buildBarItem(p.storeName, p.price, ratio, barColor);
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (onProductTap != null) {
+                        onProductTap!(p.productUrl);
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: _buildBarItem(p.storeName, p.price, ratio, barColor),
+                  ),
+                );
               }).toList(),
             ),
           ),
@@ -124,60 +138,58 @@ class PriceComparisonChart extends StatelessWidget {
 
   /// Helper untuk membangun satu item batang grafik
   Widget _buildBarItem(String store, double price, double ratio, Color color) {
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Label Harga (Sederhana: dalam ribuan/jutaan)
-          Text(
-            _compactPrice(price),
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // Label Harga (Sederhana: dalam ribuan/jutaan)
+        Text(
+          _compactPrice(price),
+          style: GoogleFonts.inter(
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            color: color,
           ),
-          const SizedBox(height: 8),
+        ),
+        const SizedBox(height: 8),
 
-          // Batang Grafik dengan Animasi Sederhana via Container
-          Expanded(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: FractionallySizedBox(
-                heightFactor: ratio.clamp(0.15, 1.0),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.9),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(8),
-                      bottom: Radius.circular(4),
-                    ),
+        // Batang Grafik dengan Animasi Sederhana via Container
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: ratio.clamp(0.15, 1.0),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.9),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(8),
+                    bottom: Radius.circular(4),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+        ),
+        const SizedBox(height: 12),
 
-          // Label Nama Toko
-          SizedBox(
-            height: 32,
-            child: Text(
-              store,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF566162),
-                height: 1.2,
-              ),
+        // Label Nama Toko
+        SizedBox(
+          height: 32,
+          child: Text(
+            store,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF566162),
+              height: 1.2,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -122,7 +122,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       // ── STEP 1: Fetch data produk dari Google Shopping API ──
-      final products = await _apiService.fetchProducts(query);
+      final rawProducts = await _apiService.fetchProducts(query);
+
+      // Mengabaikan produk dengan harga di bawah 1000 agar tidak masuk analitik dan list
+      final products = rawProducts.where((p) => p.price >= 1000).toList();
 
       // ── STEP 2: Jalankan analisis AI (statistical price analysis) ──
       // PriceAnalyzer menghitung rata-rata harga dari seluruh produk,
@@ -573,7 +576,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isPriceDropping ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                    isPriceDropping
+                        ? Icons.trending_down_rounded
+                        : Icons.trending_up_rounded,
                     color: predictionColor,
                   ),
                 ),
@@ -583,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Prediksi AI (Minggu Depan)',
+                        'Prediksi Harga (Bulan Depan)',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: _onSurfaceVariant,
@@ -593,7 +598,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isPriceDropping ? 'Harga Diprediksi Turun' : 'Harga Diprediksi Naik',
+                        isPriceDropping
+                            ? 'Harga Diprediksi Turun'
+                            : 'Harga Diprediksi Naik',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -617,7 +624,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           // ── Grafik Perbandingan Harga ──
-          PriceComparisonChart(products: products),
+          PriceComparisonChart(
+            onProductTap: _launchProductUrl,
+            products: products.where((p) {
+              final store = p.storeName.toLowerCase();
+              return store.contains('lazada') ||
+                  store.contains('shopee') ||
+                  store.contains('tokopedia') ||
+                  store.contains('tiktok') ||
+                  store.contains('blibli');
+            }).toList(),
+          ),
         ],
       ),
     );

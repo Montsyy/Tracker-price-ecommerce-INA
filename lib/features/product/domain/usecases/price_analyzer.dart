@@ -213,13 +213,11 @@ class PriceAnalyzer {
 
     // Jika di bawah rata-rata sebesar 10%
     if (selectedProduct.price <= (average * 0.9)) {
-      final savings = diffPercent.abs().toStringAsFixed(0);
-      recommendation = 'Waktu Terbaik Membeli! Hemat $savings%';
+      recommendation = 'Waktu Terbaik Membeli!';
     }
     // Jika di atas rata-rata
     else if (selectedProduct.price > average) {
-      final extra = diffPercent.toStringAsFixed(0);
-      recommendation = 'Tunggu Harga Turun ($extra% di atas rata-rata)';
+      recommendation = 'Tunggu Harga Turun';
     } else {
       recommendation = 'Harga Stabil (Sesuai pasar)';
     }
