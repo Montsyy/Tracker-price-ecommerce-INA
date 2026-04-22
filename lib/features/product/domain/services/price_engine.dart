@@ -18,8 +18,26 @@ class PriceEngine {
     
     if (validPrices.isEmpty) return 0.0;
     
-    final sum = validPrices.reduce((a, b) => a + b);
-    return sum / validPrices.length;
+    // 1. Urutkan harga
+    validPrices.sort();
+    
+    // 2. Ambil nilai tengah (median)
+    double median;
+    int middle = validPrices.length ~/ 2;
+    if (validPrices.length % 2 == 1) {
+      median = validPrices[middle];
+    } else {
+      median = (validPrices[middle - 1] + validPrices[middle]) / 2.0;
+    }
+    
+    // 3. Filter barang yang harganya di bawah 50% dari median
+    final minValidPrice = median * 0.5;
+    final filteredPrices = validPrices.where((price) => price >= minValidPrice).toList();
+    
+    if (filteredPrices.isEmpty) return 0.0;
+    
+    final sum = filteredPrices.reduce((a, b) => a + b);
+    return sum / filteredPrices.length;
   }
 
   /// Membandingkan harga produk yang dipilih dengan rata-rata pasar.

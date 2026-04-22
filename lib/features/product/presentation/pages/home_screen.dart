@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/network/api_service.dart';
+import '../../domain/services/ai_advisor.dart';
 import '../../domain/usecases/price_analyzer.dart';
 import '../widgets/price_comparison_chart.dart';
 
@@ -20,7 +21,7 @@ import '../widgets/price_comparison_chart.dart';
 /// menggunakan Deep Teal (#27676E) sebagai warna primer,
 /// font Inter via GoogleFonts, dan prinsip "No-Line" (tanpa border).
 /// ══════════════════════════════════════════════════════════════════════
-enum SortOption { bestDeals, lowestPrice, highestPrice }
+enum SortOption { bestDeals, lowestPrice, highestPrice, highestRating, mostReviews }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,6 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case SortOption.highestPrice:
         list.sort((a, b) => b.product.price.compareTo(a.product.price));
+        break;
+      case SortOption.highestRating:
+        list.sort((a, b) => b.product.rating.compareTo(a.product.rating));
+        break;
+      case SortOption.mostReviews:
+        list.sort((a, b) => b.product.reviewsCount.compareTo(a.product.reviewsCount));
         break;
       case SortOption.bestDeals:
         list.sort((a, b) {
@@ -452,6 +459,14 @@ class _HomeScreenState extends State<HomeScreen> {
               value: SortOption.highestPrice,
               child: Text('Termahal'),
             ),
+            DropdownMenuItem(
+              value: SortOption.highestRating,
+              child: Text('Rating Tertinggi'),
+            ),
+            DropdownMenuItem(
+              value: SortOption.mostReviews,
+              child: Text('Ulasan Terbanyak'),
+            ),
           ],
         ),
       ),
@@ -840,23 +855,59 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Harga — prominent display
-                    Text(
-                      _formatPrice(product.price),
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: _primary,
-                        letterSpacing: -0.5,
-                      ),
+                    // Harga & Rating (di samping harga)
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          _formatPrice(product.price),
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: _primary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        if (product.rating > 0 || product.reviewsCount > 0)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                              const SizedBox(width: 4),
+                              Text(
+                                product.rating.toString(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _onSurface,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${product.reviewsCount} ulasan)',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: _onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
 
-                    // ── AI Analysis Badge ──
-                    // Badge ini menampilkan hasil analisis dari PriceAnalyzer.
-                    // Label ditentukan berdasarkan perbandingan harga produk
-                    // terhadap rata-rata seluruh produk dalam hasil pencarian.
-                    _buildBadge(label),
+                    // ── AI Analysis Badge & Reliability Badge ──
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        _buildBadge(label),
+                        _buildBadge(AiAdvisor.getReliabilityLabel(
+                            product.rating, product.reviewsCount)),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -933,6 +984,26 @@ class _HomeScreenState extends State<HomeScreen> {
           _surfaceContainerHighest.withValues(alpha: 0.5),
           _onSurfaceVariant,
           Icons.check_circle_outline_rounded
+        ),
+      'Toko Sangat Terpercaya' => (
+          const Color(0xFFE8F5E9),
+          const Color(0xFF2E7D32),
+          Icons.verified_user_rounded
+        ),
+      'Toko Rekomendasi' => (
+          const Color(0xFFFFF8E1),
+          const Color(0xFFF57F17),
+          Icons.thumb_up_rounded
+        ),
+      'Ulasan Sedikit (Hati-hati)' => (
+          const Color(0xFFFFEBEE),
+          const Color(0xFFC62828),
+          Icons.warning_rounded
+        ),
+      'Standar' => (
+          _surfaceContainerHighest.withValues(alpha: 0.5),
+          _onSurfaceVariant,
+          Icons.storefront_rounded
         ),
       _ => (
           _surfaceContainerHighest.withValues(alpha: 0.5),

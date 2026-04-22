@@ -84,16 +84,30 @@ class PriceAnalyzer {
           .toList();
     }
 
+    // ── STEP 1.5: Outlier Detection (Hapus Aksesori/Barang Palsu) ──
+    final sortedPrices = validProducts.map((p) => p.price).toList()..sort();
+    final middle = sortedPrices.length ~/ 2;
+    double median;
+    if (sortedPrices.length % 2 == 1) {
+      median = sortedPrices[middle];
+    } else {
+      median = (sortedPrices[middle - 1] + sortedPrices[middle]) / 2.0;
+    }
+    
+    final minValidPrice = median * 0.5;
+    
+    // Filter produk yang harganya masuk akal (>= 50% median)
+    final filteredProducts = validProducts.where((p) => p.price >= minValidPrice).toList();
+    
+    if (filteredProducts.isEmpty) {
+      return products
+          .map((p) => AnalyzedProduct(product: p, label: 'Unknown'))
+          .toList();
+    }
+
     // ── STEP 2: Kalkulasi Rata-Rata Harga (Mean) ──
-    // Menggunakan fold untuk menjumlahkan seluruh harga,
-    // lalu dibagi jumlah produk valid.
-    //
-    // Formula: μ = Σ(price_i) / n
-    //  - μ = rata-rata harga
-    //  - price_i = harga produk ke-i
-    //  - n = jumlah produk dengan harga valid
-    final total = validProducts.fold(0.0, (sum, item) => sum + item.price);
-    final averagePrice = total / validProducts.length;
+    final total = filteredProducts.fold(0.0, (sum, item) => sum + item.price);
+    final averagePrice = total / filteredProducts.length;
 
     // ── STEP 3: Proses Labeling berdasarkan threshold ──
     // Setiap produk dibandingkan terhadap rata-rata (averagePrice):
@@ -109,6 +123,10 @@ class PriceAnalyzer {
     return products.map((product) {
       if (product.price == 0) {
         return AnalyzedProduct(product: product, label: 'No Price');
+      }
+
+      if (product.price < minValidPrice) {
+        return AnalyzedProduct(product: product, label: 'Outlier');
       }
 
       String label = 'Normal';
@@ -196,12 +214,34 @@ class PriceAnalyzer {
       };
     }
 
-    final total = validProducts.fold(0.0, (sum, item) => sum + item.price);
-    final average = total / validProducts.length;
+    // 1.5. Outlier Detection (Hapus Aksesori/Barang Palsu)
+    final sortedPrices = validProducts.map((p) => p.price).toList()..sort();
+    final middle = sortedPrices.length ~/ 2;
+    double median;
+    if (sortedPrices.length % 2 == 1) {
+      median = sortedPrices[middle];
+    } else {
+      median = (sortedPrices[middle - 1] + sortedPrices[middle]) / 2.0;
+    }
+    
+    final minValidPrice = median * 0.5;
+    final filteredProducts = validProducts.where((p) => p.price >= minValidPrice).toList();
+    
+    if (filteredProducts.isEmpty) {
+      return {
+        'average': 0.0,
+        'minPrice': 0.0,
+        'recommendation': 'Data harga tidak tersedia',
+        'diffPercent': 0.0,
+      };
+    }
 
-    // 2. Mencari harga terendah
+    final total = filteredProducts.fold(0.0, (sum, item) => sum + item.price);
+    final average = total / filteredProducts.length;
+
+    // 2. Mencari harga terendah (menggunakan filteredProducts)
     final minPrice =
-        validProducts.map((p) => p.price).reduce((a, b) => a < b ? a : b);
+        filteredProducts.map((p) => p.price).reduce((a, b) => a < b ? a : b);
 
     // 3. Memberikan rekomendasi
     String recommendation = 'Harga Wajar';

@@ -41,7 +41,13 @@ class ApiService {
           throw 'Produk tidak ditemukan. Coba gunakan kata kunci pencarian lain.';
         }
 
-        return products;
+        final filteredProducts = _filterProducts(products, query);
+
+        if (filteredProducts.isEmpty) {
+          throw 'Produk tidak ditemukan setelah difilter. Coba gunakan kata kunci pencarian lain.';
+        }
+
+        return filteredProducts;
       } else if (response.statusCode == 401) {
         throw 'API Key tidak valid atau tidak diizinkan. Periksa kembali SERPAPI_KEY Anda.';
       } else if (response.statusCode == 403) {
@@ -59,5 +65,28 @@ class ApiService {
       if (e is String) rethrow;
       throw 'Terjadi kesalahan tidak terduga: $e';
     }
+  }
+
+  /// Fungsi untuk memfilter hasil pencarian agar lebih akurat pada unit utamanya saja
+  List<Product> _filterProducts(List<Product> products, String query) {
+    final excludedKeywords = [
+      'bekas',
+      'second',
+      'preloved',
+      'case',
+      'dus',
+      'box saja',
+    ];
+
+    return products.where((product) {
+      final titleLower = product.title.toLowerCase();
+
+      // 1. Cek keyword terlarang
+      if (excludedKeywords.any((keyword) => titleLower.contains(keyword))) {
+        return false;
+      }
+
+      return true;
+    }).toList();
   }
 }

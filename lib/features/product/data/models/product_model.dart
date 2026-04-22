@@ -5,6 +5,7 @@ class Product {
   final String thumbnail;
   final String productUrl;
   final double rating;
+  final int reviewsCount;
 
   Product({
     required this.title,
@@ -13,6 +14,7 @@ class Product {
     required this.thumbnail,
     required this.productUrl,
     required this.rating,
+    required this.reviewsCount,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class Product {
       thumbnail: json['thumbnail'] ?? '',
       productUrl: json['product_link'] ?? json['link'] ?? '',
       rating: _parseDouble(json['rating']),
+      reviewsCount: _parseInt(json['reviews']),
     );
   }
 
@@ -36,6 +39,7 @@ class Product {
       'thumbnail': thumbnail,
       'productUrl': productUrl,
       'rating': rating,
+      'reviewsCount': reviewsCount,
     };
   }
 
@@ -52,5 +56,16 @@ class Product {
       return double.tryParse(cleanValue) ?? 0.0;
     }
     return 0.0;
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      final cleanValue = value.replaceAll(RegExp(r'[^0-9]'), '');
+      return int.tryParse(cleanValue) ?? 0;
+    }
+    return 0;
   }
 }
