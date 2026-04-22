@@ -16,6 +16,7 @@ dependencies:
   url_launcher: ^6.3.2
   google_fonts: ^8.0.2
   fl_chart: ^0.70.0
+  string_similarity: ^2.2.0
 
 dev_dependencies:
   flutter_test:

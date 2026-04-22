@@ -8,7 +8,7 @@
 
 Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu produk yang sama bisa sangat signifikan. **Tujuan utama** aplikasi ini adalah:
 1.  **Transparency**: Memberikan transparansi harga pasar yang sebenarnya dari berbagai toko besar.
-2.  **Effortless Comparison**: Menghemat waktu pengguna dengan mengumpulkan data dari Shopee, Tokopedia, Lazada, Blibli, dan TikTok Shop dalam satu layar.
+2.  **Effortless Comparison**: Menghemat waktu pengguna dengan mengumpulkan data dari Shopee, Tokopedia, Lazada, Blibli, dll dalam satu layar.
 3.  **Data-Driven Decision**: Membantu pengguna memutuskan apakah sekarang adalah waktu yang tepat untuk membeli atau sebaiknya menunggu, menggunakan analisis statistik dan prediksi AI.
 4.  **Avoiding Scams**: Memfilter produk dengan harga yang tidak masuk akal (produk dummy atau jasa) untuk memastikan data yang dianalisis adalah produk fisik asli.
 
@@ -21,8 +21,10 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 | 🤖 **AI Price Labeling** | Memberikan label otomatis: **Best Deal**, **Normal**, atau **Overpriced** berdasarkan posisi harga relatif terhadap rata-rata pasar. |
 | 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan 5 toko teratas. Setiap batang dapat di-klik untuk langsung menuju toko tersebut. |
 | 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** membantu pengguna merencanakan pengeluaran di masa mendatang. |
-| 🇮🇩 **Local Marketplace Focus** | Filter cerdas yang memprioritaskan e-commerce populer di Indonesia: *Lazada, Shopee, Tokopedia, TikTok Shop, dan Blibli*. |
-| 🛡️ **Smart Price Filtering** | Otomatis mengabaikan produk dengan harga di bawah Rp 1.000 untuk menjaga akurasi statistik rata-rata pasar. |
+| 🇮🇩 **Local Marketplace Focus** | Filter cerdas yang memprioritaskan e-commerce populer di Indonesia: *Lazada, Shopee, Tokopedia, dll*. |
+| 🛡️ **Smart Price Filtering** | Membuang produk dengan harga di bawah Rp 1.000, serta menyaring kata kunci (bekas, dus, aksesoris) dan mendeteksi anomali harga (*Outlier Detection* berbasis Median) untuk akurasi AI. |
+| 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko (mis: **Toko Sangat Terpercaya**). |
+| 🔀 **Dynamic Sorting** | Urutkan hasil pencarian secara *real-time* berdasarkan **Best Deals**, **Termurah/Termahal**, **Rating Tertinggi**, atau **Ulasan Terbanyak**. |
 | 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan editorial yang mengutamakan keterbacaan data. |
 
 ---
@@ -31,8 +33,8 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 
 Aplikasi ini menggunakan `PriceAnalyzer` sebagai pusat logika bisnis untuk memproses data mentah menjadi wawasan yang berguna.
 
-### 1. Analisis Statistik (Market Benchmarking)
-Sistem menghitung nilai rata-rata (*Mean*) dari hasil pencarian yang valid.
+### 1. Analisis Statistik & Outlier Detection
+Sistem membersihkan data mentah dari *noise* (contoh: barang bekas, box saja) dan membuang produk yang harganya terindikasi anomali (< 50% dari *Median* harga). Dari sisa data bersih, sistem menghitung rata-rata (*Mean*):
 -   **Best Deal**: Harga ≤ 90% dari rata-rata (Artinya hemat minimal 10% dibanding pasar).
 -   **Overpriced**: Harga > rata-rata pasar.
 -   **Normal**: Harga wajar di kisaran pasar.
@@ -41,8 +43,10 @@ Sistem menghitung nilai rata-rata (*Mean*) dari hasil pencarian yang valid.
 Menggunakan algoritma *random walk* terkontrol (±5% volatilitas) untuk mensimulasikan pergerakan harga di bulan berikutnya. Ini memberikan gambaran psikologis bagi pengguna untuk mempertimbangkan urgensi pembelian.
 
 ### 3. Filter Marketplace Indonesia
-Sistem melakukan *String Similarity Matching* pada nama toko untuk memastikan grafik perbandingan hanya menampilkan platform terpercaya di Indonesia, menghindari data dari toko personal yang tidak relevan di luar negeri.
+Sistem memastikan grafik perbandingan hanya menampilkan platform terpercaya di Indonesia (Shopee, Tokopedia, Lazada, dll), menghindari data dari toko personal yang tidak relevan di luar negeri.
 
+### 4. Store Reliability Labeling (AI Advisor)
+Sistem mengevaluasi kredibilitas setiap toko berdasarkan skor `rating` dan jumlah `reviewsCount`. Menghasilkan *badge* kepercayaan toko (seperti *Toko Rekomendasi* atau *Ulasan Sedikit*) sehingga pengguna terhindar dari penipuan.
 ---
 
 ## 🏗 Struktur Arsitektur (Clean Architecture)
@@ -60,7 +64,7 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
 -   **Flutter & Dart**: Performa native untuk Android & iOS.
 -   **SerpApi (Google Shopping API)**: Data marketplace real-time yang akurat.
 -   **FL Chart / Custom Bar Painting**: Visualisasi data yang dinamis.
--   **The Financial Atelier (Stitch)**: Sistem desain yang memberikan kesan mewah dan profesional.
+-   **The Financial Atelier**: Sistem desain yang memberikan kesan mewah dan profesional.
 
 ---
 
@@ -86,7 +90,7 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
 
 ## 📄 Lisensi & Kontribusi
 
-Proyek ini dikembangkan sebagai solusi belanja cerdas bagi masyarakat Indonesia. Kontribusi sangat terbuka untuk improvisasi algoritma AI atau integrasi marketplace lokal lainnya secara langsung.
+Proyek ini dikembangkan sebagai solusi belanja cerdas bagi masyarakat Indonesia. Kontribusi sangat terbuka untuk improvisasi algoritma AI.
 
 ---
 *Developed with ❤️ by Dhafi Putra Alfarezi.*
