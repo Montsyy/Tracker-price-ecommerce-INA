@@ -19,13 +19,14 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 | Fitur | Deskripsi |
 |-------|-----------|
 | 🤖 **AI Price Labeling** | Memberikan label otomatis: **Best Deal**, **Normal**, atau **Overpriced** berdasarkan posisi harga relatif terhadap rata-rata pasar. |
-| 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan 5 toko teratas. Setiap batang dapat di-klik untuk langsung menuju toko tersebut. |
-| 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** membantu pengguna merencanakan pengeluaran di masa mendatang. |
+| 🛒 **Smart Shopping Cart** | Simpan produk favorit Anda dengan sistem **persistensi data** (Shared Preferences). Dilengkapi dengan animasi badge yang halus dan navigasi langsung ke URL produk. |
+| 🔀 **Adaptive Layout Toggle** | Pilih tampilan favorit Anda: **List View** yang informatif atau **Grid View (2 Kolom)** yang modern dengan thumbnail produk 1:1 yang besar. |
+| 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan toko teratas untuk visualisasi harga yang jernih. |
+| 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** dengan data yang konsisten (cached) untuk membantu perencanaan keuangan. |
 | 🇮🇩 **Local Marketplace Focus** | Filter cerdas yang memprioritaskan e-commerce populer di Indonesia: *Lazada, Shopee, Tokopedia, dll*. |
-| 🛡️ **Smart Price Filtering** | Membuang produk dengan harga di bawah Rp 1.000, serta menyaring kata kunci (bekas, dus, aksesoris) dan mendeteksi anomali harga (*Outlier Detection* berbasis Median) untuk akurasi AI. |
-| 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko (mis: **Toko Sangat Terpercaya**). |
-| 🔀 **Dynamic Sorting** | Urutkan hasil pencarian secara *real-time* berdasarkan **Best Deals**, **Termurah/Termahal**, **Rating Tertinggi**, atau **Ulasan Terbanyak**. |
-| 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan editorial yang mengutamakan keterbacaan data. |
+| 🛡️ **Smart Price Filtering** | Membuang produk di bawah Rp 1.000, menyaring kata kunci sampah, dan mendeteksi anomali harga (*Outlier Detection*) untuk akurasi AI. |
+| 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko. |
+| 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan profesional. |
 
 ---
 
@@ -34,37 +35,39 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 Aplikasi ini menggunakan `PriceAnalyzer` sebagai pusat logika bisnis untuk memproses data mentah menjadi wawasan yang berguna.
 
 ### 1. Analisis Statistik & Outlier Detection
-Sistem membersihkan data mentah dari *noise* (contoh: barang bekas, box saja) dan membuang produk yang harganya terindikasi anomali (< 50% dari *Median* harga). Dari sisa data bersih, sistem menghitung rata-rata (*Mean*):
+Sistem membersihkan data mentah dari *noise* dan membuang produk yang harganya terindikasi anomali (< 50% dari *Median* harga). Dari sisa data bersih, sistem menghitung rata-rata (*Mean*):
 -   **Best Deal**: Harga ≤ 90% dari rata-rata (Artinya hemat minimal 10% dibanding pasar).
 -   **Overpriced**: Harga > rata-rata pasar.
--   **Normal**: Harga wajar di kisaran pasar.
 
-### 2. Prediksi Harga (Month-Ahead Prediction)
-Menggunakan algoritma *random walk* terkontrol (±5% volatilitas) untuk mensimulasikan pergerakan harga di bulan berikutnya. Ini memberikan gambaran psikologis bagi pengguna untuk mempertimbangkan urgensi pembelian.
+### 2. Smart Cart & Persistensi
+Menggunakan `Provider` sebagai state management global untuk mengelola keranjang belanja. Data disimpan secara lokal di perangkat, sehingga daftar belanja Anda tetap tersedia meskipun aplikasi ditutup dan dibuka kembali.
 
-### 3. Filter Marketplace Indonesia
-Sistem memastikan grafik perbandingan hanya menampilkan platform terpercaya di Indonesia (Shopee, Tokopedia, Lazada, dll), menghindari data dari toko personal yang tidak relevan di luar negeri.
+### 3. Prediksi Harga Konsisten
+Menggunakan algoritma *random walk simulation* (±5% volatilitas). Hasil prediksi di-cache selama sesi pencarian berlangsung untuk memastikan angka yang ditampilkan tetap konsisten saat Anda mengganti layout atau melakukan interaksi UI lainnya.
 
-### 4. Store Reliability Labeling (AI Advisor)
-Sistem mengevaluasi kredibilitas setiap toko berdasarkan skor `rating` dan jumlah `reviewsCount`. Menghasilkan *badge* kepercayaan toko (seperti *Toko Rekomendasi* atau *Ulasan Sedikit*) sehingga pengguna terhindar dari penipuan.
+### 4. Layout Fleksibel
+Implementasi `SliverGrid` dan `SliverList` yang dinamis memberikan transisi mulus antara mode List dan Grid, memastikan pengalaman pengguna yang responsif di berbagai ukuran layar.
+
 ---
 
 ## 🏗 Struktur Arsitektur (Clean Architecture)
 
 Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) secara ketat:
 
--   **Data Layer**: Mengelola komunikasi API (`ApiService`) dan pemetaan JSON ke obyek Dart (`ProductModel`).
--   **Domain Layer**: Berisi logika bisnis inti (`PriceAnalyzer`) yang independen dari framework UI.
--   **Presentation Layer**: Kumpulan widget UI yang responsif dan komponen visual (`HomeScreen`, `PriceComparisonChart`).
+-   **Data Layer**: Komunikasi API (`ApiService`) dan pemetaan JSON (`ProductModel`).
+-   **Domain Layer**: Logika bisnis inti (`PriceAnalyzer`) yang independen.
+-   **Presentation Layer**: UI yang reaktif dengan state management `Provider`.
 
 ---
 
 ## 🛠 Teknologi Utama
 
--   **Flutter & Dart**: Performa native untuk Android & iOS.
--   **SerpApi (Google Shopping API)**: Data marketplace real-time yang akurat.
--   **FL Chart / Custom Bar Painting**: Visualisasi data yang dinamis.
--   **The Financial Atelier**: Sistem desain yang memberikan kesan mewah dan profesional.
+-   **Flutter & Dart**: Performa cross-platform unggulan.
+-   **Provider**: State management yang efisien dan skalabel.
+-   **Shared Preferences**: Penyimpanan data lokal untuk fitur keranjang.
+-   **SerpApi (Google Shopping)**: Sumber data marketplace real-time.
+-   **URL Launcher**: Integrasi browser eksternal untuk transaksi.
+-   **The Financial Atelier**: Sistem desain premium dan minimalis.
 
 ---
 
@@ -91,6 +94,9 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
 ## 📄 Lisensi & Kontribusi
 
 Proyek ini dikembangkan sebagai solusi belanja cerdas bagi masyarakat Indonesia. Kontribusi sangat terbuka untuk improvisasi algoritma AI.
+
+---
+*Developed with ❤️ by Dhafi Putra Alfarezi.*ritma AI.
 
 ---
 *Developed with ❤️ by Dhafi Putra Alfarezi.*

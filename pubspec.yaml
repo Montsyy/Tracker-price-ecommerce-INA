@@ -17,6 +17,8 @@ dependencies:
   google_fonts: ^8.0.2
   fl_chart: ^0.70.0
   string_similarity: ^2.2.0
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
