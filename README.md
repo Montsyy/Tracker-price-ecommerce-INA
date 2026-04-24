@@ -96,7 +96,4 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
 Proyek ini dikembangkan sebagai solusi belanja cerdas bagi masyarakat Indonesia. Kontribusi sangat terbuka untuk improvisasi algoritma AI.
 
 ---
-*Developed with ❤️ by Dhafi Putra Alfarezi.*ritma AI.
-
----
 *Developed with ❤️ by Dhafi Putra Alfarezi.*
