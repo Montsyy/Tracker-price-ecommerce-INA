@@ -34,12 +34,12 @@ class Product {
   Map<String, dynamic> toJson() {
     return {
       'title': title,
-      'price': price,
-      'storeName': storeName,
+      'extracted_price': price,
+      'source': storeName,
       'thumbnail': thumbnail,
-      'productUrl': productUrl,
+      'product_link': productUrl,
       'rating': rating,
-      'reviewsCount': reviewsCount,
+      'reviews': reviewsCount,
     };
   }
 

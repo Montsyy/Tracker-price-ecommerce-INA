@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/providers/cart_provider.dart';
+import 'cart_screen.dart';
 
 import '../../../../core/network/api_service.dart';
 import '../../domain/services/ai_advisor.dart';
@@ -21,7 +25,13 @@ import '../widgets/price_comparison_chart.dart';
 /// menggunakan Deep Teal (#27676E) sebagai warna primer,
 /// font Inter via GoogleFonts, dan prinsip "No-Line" (tanpa border).
 /// ══════════════════════════════════════════════════════════════════════
-enum SortOption { bestDeals, lowestPrice, highestPrice, highestRating, mostReviews }
+enum SortOption {
+  bestDeals,
+  lowestPrice,
+  highestPrice,
+  highestRating,
+  mostReviews
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _errorMessage;
   bool _hasSearched = false;
   SortOption _currentSort = SortOption.bestDeals;
+  bool _isGridView = false;
+  Map<String, dynamic>? _marketAnalysis;
+  double? _predictedPrice;
 
   List<AnalyzedProduct> get _sortedProducts {
     final List<AnalyzedProduct> list = List.from(_analyzedProducts);
@@ -61,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
         list.sort((a, b) => b.product.rating.compareTo(a.product.rating));
         break;
       case SortOption.mostReviews:
-        list.sort((a, b) => b.product.reviewsCount.compareTo(a.product.reviewsCount));
+        list.sort(
+            (a, b) => b.product.reviewsCount.compareTo(a.product.reviewsCount));
         break;
       case SortOption.bestDeals:
         list.sort((a, b) {
@@ -142,6 +156,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _analyzedProducts = analyzed;
+
+        // Hitung analisis pasar dan prediksi sekali saja agar konsisten
+        if (analyzed.isNotEmpty) {
+          final products = analyzed.map((e) => e.product).toList();
+          final validProducts = products.where((p) => p.price > 0).toList();
+          if (validProducts.isNotEmpty) {
+            final minPriceProduct =
+                validProducts.reduce((a, b) => a.price < b.price ? a : b);
+            _marketAnalysis =
+                _priceAnalyzer.analyzeMarketPrice(products, minPriceProduct);
+            _predictedPrice = _priceAnalyzer
+                .predictNextWeekPrice(_marketAnalysis!['minPrice'] as double);
+          } else {
+            _marketAnalysis = null;
+            _predictedPrice = null;
+          }
+        } else {
+          _marketAnalysis = null;
+          _predictedPrice = null;
+        }
+
         _isLoading = false;
       });
     } catch (e) {
@@ -233,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── App Logo + Title ──
+          // ── App Logo + Title + Cart ──
           Row(
             children: [
               // Gradient icon container
@@ -277,6 +312,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+              const Spacer(),
+              // ── Cart Icon ──
+              Consumer<CartProvider>(
+                builder: (context, cartProvider, child) {
+                  return IconButton(
+                    icon: Badge(
+                      isLabelVisible: cartProvider.itemCount > 0,
+                      label: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                          return ScaleTransition(
+                              scale: animation, child: child);
+                        },
+                        child: Text(
+                          '${cartProvider.itemCount}',
+                          key: ValueKey<int>(cartProvider.itemCount),
+                        ),
+                      ),
+                      child: const Icon(Icons.shopping_cart, color: _primary),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CartScreen()),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
@@ -347,8 +413,142 @@ class _HomeScreenState extends State<HomeScreen> {
               onChanged: (_) => setState(() {}),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // ── Control Row: Filter + Toggle Layout ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ActionChip(
+                avatar:
+                    const Icon(Icons.filter_list, size: 18, color: _primary),
+                label: Text(
+                  switch (_currentSort) {
+                    SortOption.bestDeals => 'Best Deals',
+                    SortOption.lowestPrice => 'Termurah',
+                    SortOption.highestPrice => 'Termahal',
+                    SortOption.highestRating => 'Rating Tertinggi',
+                    SortOption.mostReviews => 'Ulasan Terbanyak',
+                  },
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: _primary,
+                  ),
+                ),
+                backgroundColor: _primaryContainer.withValues(alpha: 0.3),
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                onPressed: () {
+                  _showFilterBottomSheet(context);
+                },
+              ),
+              AnimatedRotation(
+                turns: _isGridView ? 0.5 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: IconButton(
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    child: Icon(
+                      _isGridView
+                          ? Icons.view_list_rounded
+                          : Icons.grid_view_rounded,
+                      color: _primary,
+                      key: ValueKey<bool>(_isGridView),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isGridView = !_isGridView;
+                    });
+                  },
+                  tooltip: _isGridView ? 'Tampilan List' : 'Tampilan Grid',
+                ),
+              ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  FILTER BOTTOM SHEET
+  // ════════════════════════════════════════════════════════════════
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: _surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Urutkan Berdasarkan',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: SortOption.values.map((option) {
+                  final isSelected = _currentSort == option;
+                  final label = switch (option) {
+                    SortOption.bestDeals => 'Best Deals',
+                    SortOption.lowestPrice => 'Termurah',
+                    SortOption.highestPrice => 'Termahal',
+                    SortOption.highestRating => 'Rating Tertinggi',
+                    SortOption.mostReviews => 'Ulasan Terbanyak',
+                  };
+                  return ChoiceChip(
+                    label: Text(label),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        _currentSort = option;
+                      });
+                      Navigator.pop(context);
+                    },
+                    selectedColor: _primaryContainer,
+                    labelStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w500,
+                      color: isSelected ? _primaryDim : _onSurfaceVariant,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -398,78 +598,41 @@ class _HomeScreenState extends State<HomeScreen> {
                     letterSpacing: 0.3,
                   ),
                 ),
-                _buildSortDropdown(),
               ],
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return _buildProductCard(displayList[index]);
-              },
-              childCount: displayList.length,
+        if (_isGridView)
+          SliverPadding(
+            padding: const EdgeInsets.all(12),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.55,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildProductGridCard(displayList[index]);
+                },
+                childCount: displayList.length,
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return _buildProductCard(displayList[index]);
+                },
+                childCount: displayList.length,
+              ),
             ),
           ),
-        ),
       ],
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════
-  //  SORT DROPDOWN
-  // ══════════════════════════════════════════════════════════════════
-  Widget _buildSortDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(
-        color: _surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<SortOption>(
-          value: _currentSort,
-          icon: const Icon(Icons.sort_rounded, size: 16, color: _primary),
-          elevation: 4,
-          isDense: true,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: _primary,
-          ),
-          onChanged: (SortOption? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _currentSort = newValue;
-              });
-            }
-          },
-          items: const [
-            DropdownMenuItem(
-              value: SortOption.bestDeals,
-              child: Text('Best Deals'),
-            ),
-            DropdownMenuItem(
-              value: SortOption.lowestPrice,
-              child: Text('Termurah'),
-            ),
-            DropdownMenuItem(
-              value: SortOption.highestPrice,
-              child: Text('Termahal'),
-            ),
-            DropdownMenuItem(
-              value: SortOption.highestRating,
-              child: Text('Rating Tertinggi'),
-            ),
-            DropdownMenuItem(
-              value: SortOption.mostReviews,
-              child: Text('Ulasan Terbanyak'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -483,11 +646,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final validProducts = products.where((p) => p.price > 0).toList();
     if (validProducts.isEmpty) return const SizedBox.shrink();
 
-    // Hitung rata-rata dan temukan harga termurah untuk rekomendasi
-    final minPriceProduct =
-        validProducts.reduce((a, b) => a.price < b.price ? a : b);
-    final marketAnalysis =
-        _priceAnalyzer.analyzeMarketPrice(products, minPriceProduct);
+    // Gunakan hasil analisis dan prediksi yang sudah di-cache
+    final marketAnalysis = _marketAnalysis;
+    final predictedPrice = _predictedPrice;
+
+    if (marketAnalysis == null || predictedPrice == null)
+      return const SizedBox.shrink();
 
     final String recommendation = marketAnalysis['recommendation'];
     final bool isBestDeal = recommendation.contains('Terbaik');
@@ -501,7 +665,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Hitung Prediksi Harga
     final currentMinPrice = marketAnalysis['minPrice'] as double;
-    final predictedPrice = _priceAnalyzer.predictNextWeekPrice(currentMinPrice);
     final isPriceDropping = predictedPrice < currentMinPrice;
     final predictionColor = isPriceDropping ? const Color(0xFF3D9F64) : _error;
 
@@ -874,7 +1037,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                              const Icon(Icons.star_rounded,
+                                  size: 16, color: Colors.amber),
                               const SizedBox(width: 4),
                               Text(
                                 product.rating.toString(),
@@ -899,13 +1063,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 10),
 
                     // ── AI Analysis Badge & Reliability Badge ──
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _buildBadge(label),
-                        _buildBadge(AiAdvisor.getReliabilityLabel(
-                            product.rating, product.reviewsCount)),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              _buildBadge(label),
+                              _buildBadge(AiAdvisor.getReliabilityLabel(
+                                  product.rating, product.reviewsCount)),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_shopping_cart,
+                              color: _primary),
+                          onPressed: () {
+                            context.read<CartProvider>().addToCart(product);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Berhasil ditambahkan ke keranjang'),
+                                duration: Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ],
@@ -913,6 +1099,161 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  PRODUCT GRID CARD — Vertical layout for grid view
+  // ══════════════════════════════════════════════════════════════════
+  Widget _buildProductGridCard(AnalyzedProduct analyzed) {
+    final product = analyzed.product;
+    final label = analyzed.label;
+
+    return GestureDetector(
+      onTap: () => _launchProductUrl(product.productUrl),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: _onSurface.withValues(alpha: 0.04),
+              blurRadius: 32,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Thumbnail (AspectRatio 1:1) ──
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  color: _surfaceContainerLow,
+                  child: product.thumbnail.isNotEmpty
+                      ? Image.network(
+                          product.thumbnail,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: _onSurfaceVariant.withValues(alpha: 0.35),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(
+                            Icons.shopping_bag_outlined,
+                            color: _onSurfaceVariant.withValues(alpha: 0.35),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+
+            // ── Info ──
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      product.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _onSurface,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+
+                    // Price
+                    Text(
+                      _formatPrice(product.price),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _primary,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Rating & Reviews
+                    if (product.rating > 0 || product.reviewsCount > 0)
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 12, color: Colors.amber),
+                          const SizedBox(width: 2),
+                          Text(
+                            product.rating.toString(),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: _onSurface,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '(${product.reviewsCount} ulasan)',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: _onSurfaceVariant,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 6),
+
+                    // Badge + Cart button
+                    Row(
+                      children: [
+                        Expanded(child: _buildBadge(label)),
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            iconSize: 18,
+                            icon: const Icon(Icons.add_shopping_cart,
+                                color: _primary),
+                            onPressed: () {
+                              context.read<CartProvider>().addToCart(product);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Berhasil ditambahkan ke keranjang'),
+                                  duration: Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1023,13 +1364,16 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(icon, size: 14, color: text),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: text,
-              letterSpacing: 0.3,
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: text,
+                letterSpacing: 0.3,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
