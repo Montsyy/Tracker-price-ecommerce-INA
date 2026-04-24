@@ -650,8 +650,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final marketAnalysis = _marketAnalysis;
     final predictedPrice = _predictedPrice;
 
-    if (marketAnalysis == null || predictedPrice == null)
+    if (marketAnalysis == null || predictedPrice == null) {
       return const SizedBox.shrink();
+    }
 
     final String recommendation = marketAnalysis['recommendation'];
     final bool isBestDeal = recommendation.contains('Terbaik');

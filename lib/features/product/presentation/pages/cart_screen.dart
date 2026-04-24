@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/providers/cart_provider.dart';
-import '../../data/models/product_model.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -71,7 +70,8 @@ class CartScreen extends StatelessWidget {
                       elevation: 1,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () => _launchProductUrl(context, product.productUrl),
+                        onTap: () =>
+                            _launchProductUrl(context, product.productUrl),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
@@ -85,7 +85,8 @@ class CartScreen extends StatelessWidget {
                                         width: 64,
                                         height: 64,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                                        errorBuilder: (_, __, ___) =>
+                                            _buildPlaceholder(),
                                       )
                                     : _buildPlaceholder(),
                               ),
@@ -119,12 +120,14 @@ class CartScreen extends StatelessWidget {
                               ),
                               // Remove Button
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Color(0xFF9F403D)),
+                                icon: const Icon(Icons.delete_outline,
+                                    color: Color(0xFF9F403D)),
                                 onPressed: () {
                                   cartProvider.removeFromCart(product);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Item dihapus dari keranjang'),
+                                      content:
+                                          Text('Item dihapus dari keranjang'),
                                       duration: Duration(seconds: 1),
                                     ),
                                   );
@@ -145,7 +148,7 @@ class CartScreen extends StatelessWidget {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -5),
                     ),
@@ -188,7 +191,8 @@ class CartScreen extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF27676E),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
