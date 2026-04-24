@@ -19,7 +19,7 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 | Fitur | Deskripsi |
 |-------|-----------|
 | 🤖 **AI Price Labeling** | Memberikan label otomatis: **Best Deal**, **Normal**, atau **Overpriced** berdasarkan posisi harga relatif terhadap rata-rata pasar. |
-| 🛒 **Smart Shopping Cart** | Simpan produk favorit Anda dengan sistem **persistensi data** (Shared Preferences). Dilengkapi dengan animasi badge yang halus dan navigasi langsung ke URL produk. |
+| 🛒 **Smart Shopping Cart** | Simpan produk favorit Anda dengan sistem **persistensi data** (Shared Preferences). |
 | 🔀 **Adaptive Layout Toggle** | Pilih tampilan favorit Anda: **List View** yang informatif atau **Grid View (2 Kolom)** yang modern dengan thumbnail produk 1:1 yang besar. |
 | 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan toko teratas untuk visualisasi harga yang jernih. |
 | 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** dengan data yang konsisten (cached) untuk membantu perencanaan keuangan. |
