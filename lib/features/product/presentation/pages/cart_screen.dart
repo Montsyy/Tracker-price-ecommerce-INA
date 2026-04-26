@@ -125,10 +125,21 @@ class CartScreen extends StatelessWidget {
                                 onPressed: () {
                                   cartProvider.removeFromCart(product);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Item dihapus dari keranjang'),
-                                      duration: Duration(seconds: 1),
+                                    SnackBar(
+                                      content: Text(
+                                        'Barang telah dihapus',
+                                        style: GoogleFonts.inter(),
+                                      ),
+                                      duration: const Duration(seconds: 4),
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: const Color(0xFF2A3435),
+                                      action: SnackBarAction(
+                                        label: 'BATALKAN',
+                                        textColor: const Color(0xFFAFEDF5),
+                                        onPressed: () {
+                                          cartProvider.addToCart(product);
+                                        },
+                                      ),
                                     ),
                                   );
                                 },

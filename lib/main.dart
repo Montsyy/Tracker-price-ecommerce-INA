@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'core/providers/cart_provider.dart';
-import 'features/product/presentation/pages/home_screen.dart';
+import 'features/product/presentation/pages/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +17,7 @@ void main() async {
 
 /// Root widget aplikasi Smart Price Tracker.
 ///
-/// Menggunakan design system "The Financial Atelier" dari Stitch:
+/// Menggunakan design system "The Financial Atelier":
 ///  - Primary: Deep Teal (#27676E)
 ///  - Background: Off-white (#F8FAFA)
 ///  - Font: Inter (via GoogleFonts)
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           scaffoldBackgroundColor: _background,
         ),
-        home: const HomeScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

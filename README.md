@@ -18,15 +18,16 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 
 | Fitur | Deskripsi |
 |-------|-----------|
+| 🌊 **Animated SplashScreen** | Transisi fade-in logo yang halus dengan slogan "Smart Shopping Assistant" dan transisi halaman yang *seamless*. |
 | 🤖 **AI Price Labeling** | Memberikan label otomatis: **Best Deal**, **Normal**, atau **Overpriced** berdasarkan posisi harga relatif terhadap rata-rata pasar. |
-| 🛒 **Smart Shopping Cart** | Simpan produk favorit Anda dengan sistem **persistensi data** (Shared Preferences). |
+| 🛒 **Smart Shopping Cart** | Simpan produk favorit dengan sistem **persistensi data** dan fitur **Undo Deletion** via SnackBar jika Anda berubah pikiran. |
 | 🔀 **Adaptive Layout Toggle** | Pilih tampilan favorit Anda: **List View** yang informatif atau **Grid View (2 Kolom)** yang modern dengan thumbnail produk 1:1 yang besar. |
 | 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan toko teratas untuk visualisasi harga yang jernih. |
 | 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** dengan data yang konsisten (cached) untuk membantu perencanaan keuangan. |
-| 🇮🇩 **Local Marketplace Focus** | Filter cerdas yang memprioritaskan e-commerce populer di Indonesia: *Lazada, Shopee, Tokopedia, dll*. |
 | 🛡️ **Smart Price Filtering** | Membuang produk di bawah Rp 1.000, menyaring kata kunci sampah, dan mendeteksi anomali harga (*Outlier Detection*) untuk akurasi AI. |
 | 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko. |
 | 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan profesional. |
+| 🚪 **Double Tap to Exit** | Mencegah penutupan aplikasi yang tidak disengaja dengan sistem konfirmasi SnackBar yang cerdas. |
 
 ---
 
@@ -67,7 +68,8 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
 -   **Shared Preferences**: Penyimpanan data lokal untuk fitur keranjang.
 -   **SerpApi (Google Shopping)**: Sumber data marketplace real-time.
 -   **URL Launcher**: Integrasi browser eksternal untuk transaksi.
--   **The Financial Atelier**: Sistem desain premium dan minimalis.
+-   **Google Fonts (Inter & Outfit)**: Tipografi premium dan elegan.
+-   **Flutter Launcher Icons**: Kustomisasi ikon aplikasi untuk Android & iOS.
 
 ---
 
@@ -84,7 +86,12 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
     ```env
     SERPAPI_KEY=masukkan_api_key_anda_di_sini
     ```
-3.  **Run**:
+3.  **Pembaruan Ikon (Opsional)**:
+    Jika Anda mengganti logo di `assets/icon/app_icon.png`, jalankan:
+    ```bash
+    flutter pub run flutter_launcher_icons
+    ```
+4.  **Run**:
     ```bash
     flutter run
     ```

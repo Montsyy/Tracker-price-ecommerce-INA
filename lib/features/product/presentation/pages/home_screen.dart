@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isGridView = false;
   Map<String, dynamic>? _marketAnalysis;
   double? _predictedPrice;
+  DateTime? currentBackPressTime;
 
   List<AnalyzedProduct> get _sortedProducts {
     final List<AnalyzedProduct> list = List.from(_analyzedProducts);
@@ -242,15 +244,52 @@ class _HomeScreenState extends State<HomeScreen> {
   // ══════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _background,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildContent()),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        final now = DateTime.now();
+        if (currentBackPressTime == null ||
+            now.difference(currentBackPressTime!) >
+                const Duration(seconds: 2)) {
+          currentBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tekan sekali lagi untuk keluar',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black.withValues(alpha: 0.7),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.only(
+                bottom: 50,
+                left: 32,
+                right: 32,
+              ),
+            ),
+          );
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: _background,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              Expanded(child: _buildContent()),
+            ],
+          ),
         ),
       ),
     );
@@ -273,20 +312,25 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // Gradient icon container
               Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [_primary, _primaryDim],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primary.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.trending_down_rounded,
-                  color: Color(0xFFE5FCFF),
-                  size: 22,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/icon/app_icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -610,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisCount: 2,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                childAspectRatio: 0.55,
+                childAspectRatio: 0.52,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -1083,14 +1127,35 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: _primary),
                           onPressed: () {
                             context.read<CartProvider>().addToCart(product);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Berhasil ditambahkan ke keranjang'),
-                                duration: Duration(seconds: 2),
+                            ScaffoldMessenger.of(context).clearSnackBars();
+                            final controller =
+                                ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${product.title} berhasil ditambahkan ke keranjang',
+                                  style: GoogleFonts.inter(),
+                                ),
+                                duration: const Duration(seconds: 2),
                                 behavior: SnackBarBehavior.floating,
+                                action: SnackBarAction(
+                                  label: 'LIHAT',
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CartScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             );
+                            Future.delayed(const Duration(seconds: 2), () {
+                              try {
+                                controller.close();
+                              } catch (_) {}
+                            });
                           },
                         ),
                       ],
@@ -1165,6 +1230,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Nama Toko
+                    Text(
+                      product.storeName.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: _onSurfaceVariant.withValues(alpha: 0.65),
+                        letterSpacing: 1.0,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
                     // Title
                     Text(
                       product.title,
@@ -1226,7 +1304,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Badge + Cart button
                     Row(
                       children: [
-                        Expanded(child: _buildBadge(label)),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: [
+                              _buildBadge(label),
+                              _buildBadge(AiAdvisor.getReliabilityLabel(
+                                  product.rating, product.reviewsCount)),
+                            ],
+                          ),
+                        ),
                         SizedBox(
                           width: 28,
                           height: 28,
@@ -1237,14 +1325,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: _primary),
                             onPressed: () {
                               context.read<CartProvider>().addToCart(product);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Berhasil ditambahkan ke keranjang'),
-                                  duration: Duration(seconds: 2),
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              final controller =
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${product.title} berhasil ditambahkan ke keranjang',
+                                    style: GoogleFonts.inter(),
+                                  ),
+                                  duration: const Duration(seconds: 2),
                                   behavior: SnackBarBehavior.floating,
+                                  action: SnackBarAction(
+                                    label: 'LIHAT',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CartScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               );
+                              Future.delayed(const Duration(seconds: 2), () {
+                                try {
+                                  controller.close();
+                                } catch (_) {}
+                              });
                             },
                           ),
                         ),
