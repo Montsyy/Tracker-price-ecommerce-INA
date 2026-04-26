@@ -84,12 +84,7 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
     ```env
     SERPAPI_KEY=masukkan_api_key_anda_di_sini
     ```
-3.  **Pembaruan Ikon (Opsional)**:
-    Jika Anda mengganti logo di `assets/icon/app_icon.png`, jalankan:
-    ```bash
-    flutter pub run flutter_launcher_icons
-    ```
-4.  **Run**:
+3.  **Run**:
     ```bash
     flutter run
     ```
