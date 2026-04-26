@@ -26,8 +26,6 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 | 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** dengan data yang konsisten (cached) untuk membantu perencanaan keuangan. |
 | 🛡️ **Smart Price Filtering** | Membuang produk di bawah Rp 1.000, menyaring kata kunci sampah, dan mendeteksi anomali harga (*Outlier Detection*) untuk akurasi AI. |
 | 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko. |
-| 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan profesional. |
-| 🚪 **Double Tap to Exit** | Mencegah penutupan aplikasi yang tidak disengaja dengan sistem konfirmasi SnackBar yang cerdas. |
 
 ---
 
