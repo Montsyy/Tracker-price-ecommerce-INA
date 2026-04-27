@@ -45,9 +45,12 @@ class PriceComparisonChart extends StatelessWidget {
     final double minPrice = validPrices.reduce((a, b) => a < b ? a : b);
     final double maxPrice = validPrices.reduce((a, b) => a > b ? a : b);
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 20.0;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(24),
@@ -125,7 +128,13 @@ class PriceComparisonChart extends StatelessWidget {
                       }
                     },
                     behavior: HitTestBehavior.opaque,
-                    child: _buildBarItem(p.storeName, p.price, ratio, barColor),
+                    child: _buildBarItem(
+                      p.storeName,
+                      p.price,
+                      ratio,
+                      barColor,
+                      screenWidth < 360,
+                    ),
                   ),
                 );
               }).toList(),
@@ -137,7 +146,8 @@ class PriceComparisonChart extends StatelessWidget {
   }
 
   /// Helper untuk membangun satu item batang grafik
-  Widget _buildBarItem(String store, double price, double ratio, Color color) {
+  Widget _buildBarItem(
+      String store, double price, double ratio, Color color, bool isSmallScreen) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -159,7 +169,7 @@ class PriceComparisonChart extends StatelessWidget {
             child: FractionallySizedBox(
               heightFactor: ratio.clamp(0.15, 1.0),
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
+                margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 8),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.9),
                   borderRadius: const BorderRadius.vertical(

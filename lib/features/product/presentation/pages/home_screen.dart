@@ -650,11 +650,11 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverPadding(
             padding: const EdgeInsets.all(12),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: MediaQuery.sizeOf(context).width > 600 ? 3 : 2,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                childAspectRatio: 0.52,
+                childAspectRatio: _calculateAspectRatio(context),
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -1027,7 +1027,8 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Product Thumbnail ──
-              _buildThumbnail(product.thumbnail),
+              _buildThumbnail(product.thumbnail,
+                  size: MediaQuery.sizeOf(context).width < 360 ? 72 : 88),
               const SizedBox(width: 16),
 
               // ── Product Info ──
@@ -1372,12 +1373,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // ══════════════════════════════════════════════════════════════════
   //  PRODUCT THUMBNAIL
   // ══════════════════════════════════════════════════════════════════
-  Widget _buildThumbnail(String thumbnailUrl) {
+  Widget _buildThumbnail(String thumbnailUrl, {double size = 88}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 88,
-        height: 88,
+        width: size,
+        height: size,
         color: _surfaceContainerLow,
         child: thumbnailUrl.isNotEmpty
             ? Image.network(
@@ -1509,5 +1510,18 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return 'Rp ${buffer.toString().split('').reversed.join()}';
+  }
+
+  /// Menghitung rasio aspek dinamis untuk Grid agar tidak overflow pada layar kecil.
+  double _calculateAspectRatio(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    if (width < 360) {
+      return 0.48; // Lebih tinggi untuk layar sangat sempit
+    } else if (width < 400) {
+      return 0.52; // Standar mobile
+    } else if (width > 600) {
+      return 0.65; // Tablet (biasanya 3 kolom)
+    }
+    return 0.55;
   }
 }

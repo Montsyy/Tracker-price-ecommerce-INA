@@ -24,8 +24,11 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 | 🔀 **Adaptive Layout Toggle** | Pilih tampilan favorit Anda: **List View** yang informatif atau **Grid View (2 Kolom)** yang modern dengan thumbnail produk 1:1 yang besar. |
 | 📊 **Interactive Market Chart** | Grafik batang interaktif yang membandingkan toko teratas untuk visualisasi harga yang jernih. |
 | 🔮 **Predictive Analytics** | Simulasi prediksi harga untuk **bulan depan** dengan data yang konsisten (cached) untuk membantu perencanaan keuangan. |
+| 🇮🇩 **Local Marketplace Focus** | Memfilter hasil pencarian hanya dari e-commerce lokal (Tokopedia, Shopee, Lazada, Blibli, TikTok Shop) untuk relevansi pasar Indonesia. |
 | 🛡️ **Smart Price Filtering** | Membuang produk di bawah Rp 1.000, menyaring kata kunci sampah, dan mendeteksi anomali harga (*Outlier Detection*) untuk akurasi AI. |
 | 🌟 **Store Reliability Badge** | Mengevaluasi skor `rating` dan `reviews` untuk melabeli kredibilitas toko. |
+| 🎨 **Editorial Design System** | Menggunakan "The Financial Atelier" design system — visual premium, minimalis, dan profesional. |
+| 🚪 **Double Tap to Exit** | Mencegah penutupan aplikasi yang tidak disengaja dengan sistem konfirmasi SnackBar yang cerdas. |
 
 ---
 
@@ -34,7 +37,7 @@ Di tengah banyaknya pilihan marketplace di Indonesia, variasi harga untuk satu p
 Aplikasi ini menggunakan `PriceAnalyzer` sebagai pusat logika bisnis untuk memproses data mentah menjadi wawasan yang berguna.
 
 ### 1. Analisis Statistik & Outlier Detection
-Sistem membersihkan data mentah dari *noise* dan membuang produk yang harganya terindikasi anomali (< 50% dari *Median* harga). Dari sisa data bersih, sistem menghitung rata-rata (*Mean*):
+Sistem membersihkan data mentah dari *noise*, memfilter marketplace luar negeri agar hanya menampilkan platform lokal Indonesia, dan membuang produk yang harganya terindikasi anomali (< 50% dari *Median* harga). Dari sisa data bersih, sistem menghitung rata-rata (*Mean*):
 -   **Best Deal**: Harga ≤ 90% dari rata-rata (Artinya hemat minimal 10% dibanding pasar).
 -   **Overpriced**: Harga > rata-rata pasar.
 
@@ -84,7 +87,12 @@ Aplikasi ini dibangun dengan memisahkan tanggung jawab (Separation of Concerns) 
     ```env
     SERPAPI_KEY=masukkan_api_key_anda_di_sini
     ```
-3.  **Run**:
+3.  **Pembaruan Ikon (Opsional)**:
+    Jika Anda mengganti logo di `assets/icon/app_icon.png`, jalankan:
+    ```bash
+    flutter pub run flutter_launcher_icons
+    ```
+4.  **Run**:
     ```bash
     flutter run
     ```

@@ -124,13 +124,17 @@ class CartScreen extends StatelessWidget {
                                     color: Color(0xFF9F403D)),
                                 onPressed: () {
                                   cartProvider.removeFromCart(product);
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  final messenger =
+                                      ScaffoldMessenger.of(context);
+                                  messenger.removeCurrentSnackBar();
+                                  final controller = messenger.showSnackBar(
                                     SnackBar(
                                       content: Text(
                                         'Barang telah dihapus',
                                         style: GoogleFonts.inter(),
                                       ),
-                                      duration: const Duration(seconds: 4),
+                                      duration:
+                                          const Duration(milliseconds: 1500),
                                       behavior: SnackBarBehavior.floating,
                                       backgroundColor: const Color(0xFF2A3435),
                                       action: SnackBarAction(
@@ -142,6 +146,14 @@ class CartScreen extends StatelessWidget {
                                       ),
                                     ),
                                   );
+
+                                  // Force close after duration to ensure it doesn't get stuck
+                                  Future.delayed(
+                                      const Duration(milliseconds: 1500), () {
+                                    try {
+                                      controller.close();
+                                    } catch (_) {}
+                                  });
                                 },
                               ),
                             ],
@@ -193,6 +205,7 @@ class CartScreen extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () {
+                          ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Fitur checkout belum tersedia'),
@@ -235,6 +248,7 @@ class CartScreen extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gagal membuka link produk')),
         );

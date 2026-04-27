@@ -86,6 +86,15 @@ class ApiService {
         return false;
       }
 
+      // 2. Cek e-commerce lokal Indonesia
+      final localMarketplaces = ['tokopedia', 'shopee', 'lazada', 'blibli', 'tiktok'];
+      final storeLower = product.storeName.toLowerCase();
+      final isLocal = localMarketplaces.any((store) => storeLower.contains(store));
+      
+      if (!isLocal) {
+        return false;
+      }
+
       return true;
     }).toList();
   }
